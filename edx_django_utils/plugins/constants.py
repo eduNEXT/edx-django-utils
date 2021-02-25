@@ -67,3 +67,13 @@ class PluginContexts():
     """
 
     CONFIG = "view_context_config"
+
+class PluginActions():
+    """
+    The PluginActions enum defines dictionary field names (and defaults)
+    that can be specified by a Plugin App in order to configure the
+    hooks that want be used.
+    """
+
+    CONFIG = "actions_config"
+
