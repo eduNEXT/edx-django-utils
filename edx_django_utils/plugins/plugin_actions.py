@@ -12,18 +12,18 @@ from . import constants, registry
 log = getLogger(__name__)
 
 
-def do_plugin_action(project_type, namespace, *args, **kwargs):
+def do_plugin_action(project_type, trigger_name, *args, **kwargs):
     """
-    Will check if any plugin apps have that namespace in their actions_config, and if so will call their
+    Will check if any plugin apps have that trigger_name in their actions_config, and if so will call their
     selected function..
 
     Params:
         project_type: a string that determines which project (lms or studio) the view is being called in. See the
             ProjectType enum in plugins/constants.py for valid options
-        namespace: a string that determines which is the namespace of this action.
+        trigger_name: a string that determines which is the trigger_name of this action.
     """
 
-    action_functions = _get_cached_action_functions_for_namespace(project_type, namespace)
+    action_functions = _get_cached_action_functions_for_trigger_name(project_type, trigger_name)
 
     for (action_function, plugin_name) in action_functions:
         try:
@@ -38,7 +38,7 @@ def do_plugin_action(project_type, namespace, *args, **kwargs):
 
 
 @functools.lru_cache(maxsize=None)
-def _get_cached_action_functions_for_namespace(project_type, namespace):
+def _get_cached_action_functions_for_trigger_name(project_type, trigger_name):
     """
     Returns a list of tuples where the first item is the action function
     and the second item is the name of the plugin it's being called from.
@@ -50,7 +50,7 @@ def _get_cached_action_functions_for_namespace(project_type, namespace):
     action_functions = []
     for app_config in registry.get_plugin_app_configs(project_type):
         action_function_path = _get_action_function_path(
-            app_config, project_type, namespace
+            app_config, project_type, trigger_name
         )
         if action_function_path:
             module_path, _, name = action_function_path.rpartition(".")
@@ -60,7 +60,7 @@ def _get_cached_action_functions_for_namespace(project_type, namespace):
                 log.exception(
                     "Failed to import %s plugin when creating %s action",
                     module_path,
-                    namespace,
+                    trigger_name,
                 )
                 continue
             action_function = getattr(module, name, None)
@@ -72,13 +72,13 @@ def _get_cached_action_functions_for_namespace(project_type, namespace):
                     "Failed to retrieve %s function from %s plugin when creating %s action",
                     name,
                     module_path,
-                    namespace,
+                    trigger_name,
                 )
     return action_functions
 
 
-def _get_action_function_path(app_config, project_type, namespace):
+def _get_action_function_path(app_config, project_type, trigger_name):
     plugin_config = getattr(app_config, constants.PLUGIN_APP_CLASS_ATTRIBUTE_NAME, {})
     actions_config = plugin_config.get(constants.PluginActions.CONFIG, {})
     project_type_settings = actions_config.get(project_type, {})
-    return project_type_settings.get(namespace)
+    return project_type_settings.get(trigger_name)
