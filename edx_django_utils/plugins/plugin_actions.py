@@ -23,7 +23,7 @@ def do_plugin_action(project_type, namespace, *args, **kwargs):
         namespace: a string that determines which is the namespace of this action.
     """
 
-    action_functions = _get_cached_action_functions_for_namespace(project_type, namepsace)
+    action_functions = _get_cached_action_functions_for_namespace(project_type, namespace)
 
     for (action_function, plugin_name) in action_functions:
         try:
@@ -74,11 +74,11 @@ def _get_cached_action_functions_for_namespace(project_type, namespace):
                     module_path,
                     namespace,
                 )
-    return action_function
+    return action_functions
 
 
 def _get_action_function_path(app_config, project_type, namespace):
     plugin_config = getattr(app_config, constants.PLUGIN_APP_CLASS_ATTRIBUTE_NAME, {})
     actions_config = plugin_config.get(constants.PluginActions.CONFIG, {})
-    project_type_settings = action_config.get(project_type, {})
+    project_type_settings = actions_config.get(project_type, {})
     return project_type_settings.get(namespace)
