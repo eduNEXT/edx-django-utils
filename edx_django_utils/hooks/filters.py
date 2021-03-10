@@ -28,7 +28,10 @@ def do_filter(trigger_name, *args, **kwargs):
 
     for filter_function in filter_functions:
         try:
-            out = filter_function(*args, **out) or {}
+            result = filter_function(*args, **out) or {}
+
+            out = kwargs.copy()  # Restart accumulated outputs
+            out.update(result)
 
         except Exception as exc:  # pylint: disable=broad-except
             # We're catching this because we don't want the core to blow up when a
@@ -41,4 +44,4 @@ def do_filter(trigger_name, *args, **kwargs):
             )
             continue
 
-    return out
+    return result
