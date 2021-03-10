@@ -16,8 +16,8 @@ def do_filter(trigger_name, *args, **kwargs):
     Will check in the django setting HOOKS_EXTENSIONS the trigger_name key and call their configured
     functions.
 
-    Each filter function must a dictionary. This returned value will be fed to the next filter function
-    if exists, if not, this value will be returned by do_filter.
+    Each filter function must a dictionary. This returned value will be fed in conjunction with the initial arguments
+    to the next filter function if exists, if not, this value will be returned by do_filter.
 
     Params:
         trigger_name: a string that determines which is the trigger of this filter.
@@ -42,4 +42,4 @@ def do_filter(trigger_name, *args, **kwargs):
             )
             continue
 
-    return out
+    return args, out
