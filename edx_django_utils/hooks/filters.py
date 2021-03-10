@@ -41,4 +41,4 @@ def do_filter(trigger_name, *args, **kwargs):
             )
             continue
 
-    return args, kwargs
+    return out
