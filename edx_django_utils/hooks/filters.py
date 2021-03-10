@@ -24,7 +24,7 @@ def do_filter(trigger_name, *args, **kwargs):
     """
     filter_functions, are_async = get_cached_functions_for_hook(trigger_name)
 
-    out = {}
+    out = kwargs.copy()
 
     for filter_function in filter_functions:
         try:
