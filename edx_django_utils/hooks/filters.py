@@ -42,4 +42,4 @@ def do_filter(trigger_name, *args, **kwargs):
             )
             continue
 
-    return result
+    return out
