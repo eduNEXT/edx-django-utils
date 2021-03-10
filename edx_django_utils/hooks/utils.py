@@ -1,8 +1,11 @@
 """ Utilities for the hooks module. """
 import functools
+
+from logging import getLogger
 from importlib import import_module
 from django.conf import settings
 
+log = getLogger(__name__)
 
 def get_cached_functions_for_hook(trigger_name):
     """
