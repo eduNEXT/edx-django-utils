@@ -58,6 +58,9 @@ def run_pipeline(pipeline, *args, raise_exception=False, **kwargs):
             out.update(result)
         except HookException as exc:
             if raise_exception:
+                log.exception(
+                    "Failed to call action filter. Error: %s", exc,
+                )
                 raise exc
         except Exception as exc:  # pylint: disable=broad-except
             # We're catching this because we don't want the core to blow up when a
