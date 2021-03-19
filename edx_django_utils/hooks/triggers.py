@@ -32,6 +32,9 @@ def trigger_filter(trigger_name, *args, **kwargs):
     """
     pipeline, is_async = get_pipeline_configuration(trigger_name)
 
+    if not pipeline:
+        return kwargs
+
     if is_async:
         result = run_pipeline(
             pipeline, *args, raise_exception=True, **kwargs
@@ -62,6 +65,9 @@ def trigger_action(trigger_name, *args, **kwargs):
         None. By definition actions don't return any value.
     """
     pipeline, is_async = get_pipeline_configuration(trigger_name)
+
+    if not pipeline:
+        return
 
     if is_async:
         run_pipeline(pipeline, *args, **kwargs)  # TODO: change to async call.

@@ -44,9 +44,7 @@ def get_functions_for_pipeline(pipeline):
             )
         except AttributeError:
             log.exception(
-                "Failed to retrieve '%s' function from path '%s'.",
-                name,
-                function_path,
+                "Failed to retrieve '%s' function from path '%s'.", name, function_path,
             )
 
     return function_list

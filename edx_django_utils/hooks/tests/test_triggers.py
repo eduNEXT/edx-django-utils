@@ -24,6 +24,26 @@ class TestTriggerFilter(TestCase):
 
     @patch("edx_django_utils.hooks.triggers.run_pipeline")
     @patch("edx_django_utils.hooks.triggers.get_pipeline_configuration")
+    def test_run_empty_pipeline(self, get_configuration_mock, run_pipeline_mock):
+        """
+        This method runs trigget_filter with an empty pipeline.
+
+        Expected behavior:
+            Returns keyword arguments without calling the pipeline runner.
+        """
+        pipeline, is_async = [], False
+        get_configuration_mock.return_value = (
+            pipeline,
+            is_async,
+        )
+
+        result = trigger_filter("trigger_name", **self.kwargs)
+
+        self.assertDictEqual(result, self.kwargs)
+        run_pipeline_mock.assert_not_called()
+
+    @patch("edx_django_utils.hooks.triggers.run_pipeline")
+    @patch("edx_django_utils.hooks.triggers.get_pipeline_configuration")
     def test_affecting_execution(self, get_configuration_mock, run_pipeline_mock):
         """
         This method runs trigget_filter affecting the application flow raising exceptions.
@@ -31,12 +51,11 @@ class TestTriggerFilter(TestCase):
         Expected behavior:
             Run pipeline is called with raise_exception equals to True.
         """
-        pipeline, is_async = [], False
+        pipeline, is_async = Mock(), False
         get_configuration_mock.return_value = (
             pipeline,
             is_async,
         )
-        run_pipeline_mock.return_value = None
 
         trigger_filter("trigger_name", **self.kwargs)
 
@@ -55,10 +74,7 @@ class TestTriggerFilter(TestCase):
         """
         pipeline = Mock()
         is_async = False
-        filter_return_value = {
-            "user": Mock(),
-            **self.kwargs
-        }
+        filter_return_value = {"user": Mock(), **self.kwargs}
         get_configuration_mock.return_value = (
             pipeline,
             is_async,
@@ -94,6 +110,25 @@ class TestTriggerAction(TestCase):
         self.kwargs = {
             "request": Mock(),
         }
+
+    @patch("edx_django_utils.hooks.triggers.run_pipeline")
+    @patch("edx_django_utils.hooks.triggers.get_pipeline_configuration")
+    def test_run_empty_pipeline(self, get_configuration_mock, run_pipeline_mock):
+        """
+        This method runs trigger_action with an empty pipeline.
+
+        Expected behavior:
+            The pipeline runner is not called.
+        """
+        pipeline, is_async = [], False
+        get_configuration_mock.return_value = (
+            pipeline,
+            is_async,
+        )
+
+        trigger_action("trigger_name", **self.kwargs)
+
+        run_pipeline_mock.assert_not_called()
 
     @patch("edx_django_utils.hooks.triggers.run_pipeline")
     @patch("edx_django_utils.hooks.triggers.get_pipeline_configuration")

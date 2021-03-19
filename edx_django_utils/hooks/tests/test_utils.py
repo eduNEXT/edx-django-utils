@@ -56,8 +56,7 @@ class TestUtilityFunctions(TestCase):
             function_list = get_functions_for_pipeline(pipeline)
 
         self.assertEqual(
-            captured.records[0].getMessage(),
-            log_message,
+            captured.records[0].getMessage(), log_message,
         )
         self.assertEqual(function_list, [test_function])
 
@@ -81,10 +80,7 @@ class TestUtilityFunctions(TestCase):
         with self.assertLogs() as captured:
             function_list = get_functions_for_pipeline(pipeline)
 
-        self.assertEqual(
-            captured.records[0].getMessage(),
-            log_message
-        )
+        self.assertEqual(captured.records[0].getMessage(), log_message)
         self.assertEqual(function_list, [test_function])
 
     def test_get_function_list(self):
