@@ -39,6 +39,8 @@ def run_pipeline(pipeline, *args, raise_exception=False, **kwargs):
 
     Returns:
         out (dict): accumulated outputs of the functions defined in pipeline.
+        result (obj): return object of one of the pipeline functions. This will be the return object for the pipeline
+        if one of the functions returns an object different than Dict o None.
 
     Exceptions raised:
         HookException: custom exception re-raised when a function raised an exception of
@@ -54,12 +56,16 @@ def run_pipeline(pipeline, *args, raise_exception=False, **kwargs):
         try:
             result = function(*args, **out) or {}
             if not isinstance(result, dict):
+                log.info(
+                    "Pipeline stopped by '%s' for returning an object.",
+                    function.__name__,
+                )
                 return result
             out.update(result)
         except HookException as exc:
             if raise_exception:
                 log.exception(
-                    "Exception raised while running `%s`:\n %s", function.__name__, exc,
+                    "Exception raised while running '%s':\n %s", function.__name__, exc,
                 )
                 raise exc
         except Exception as exc:  # pylint: disable=broad-except
@@ -68,8 +74,10 @@ def run_pipeline(pipeline, *args, raise_exception=False, **kwargs):
             # monitoring hooked up to it to make sure that these errors don't go
             # unseen.
             log.exception(
-                "Exception raised while running `%s`: %s\n%s", function.__name__, exc,
-                "Continuing execution."
+                "Exception raised while running '%s': %s\n%s",
+                function.__name__,
+                exc,
+                "Continuing execution.",
             )
             continue
 

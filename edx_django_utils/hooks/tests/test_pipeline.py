@@ -51,16 +51,14 @@ class TestRunningPipeline(TestCase):
         function = Mock(side_effect=HookException(message=exception_message))
         function.__name__ = "function_name"
         get_functions_mock.return_value = [function]
-        log_message = "Exception raised while running `{func_name}`:\n HookException: {exc_msg}".format(
-            func_name="function_name",
-            exc_msg=exception_message,
+        log_message = "Exception raised while running '{func_name}':\n HookException: {exc_msg}".format(
+            func_name="function_name", exc_msg=exception_message,
         )
 
         with self.assertRaises(HookException), self.assertLogs() as captured:
             run_pipeline(self.pipeline, raise_exception=True, **self.kwargs)
         self.assertEqual(
-            captured.records[0].getMessage(),
-            log_message,
+            captured.records[0].getMessage(), log_message,
         )
 
     @patch("edx_django_utils.hooks.pipeline.get_functions_for_pipeline")
@@ -75,17 +73,17 @@ class TestRunningPipeline(TestCase):
         return_value = {
             "request": Mock(),
         }
-        trigger_with_exception = Mock(side_effect=HookException)
-        trigger_without_exception = Mock(return_value=return_value)
+        function_with_exception = Mock(side_effect=HookException)
+        function_without_exception = Mock(return_value=return_value)
         get_functions_mock.return_value = [
-            trigger_with_exception,
-            trigger_without_exception,
+            function_with_exception,
+            function_without_exception,
         ]
 
         result = run_pipeline(self.pipeline, **self.kwargs)
 
         self.assertEqual(result, return_value)
-        trigger_without_exception.assert_called_once_with(**self.kwargs)
+        function_without_exception.assert_called_once_with(**self.kwargs)
 
     @patch("edx_django_utils.hooks.pipeline.get_functions_for_pipeline")
     def test_not_raise_common_exception(self, get_functions_mock):
@@ -98,15 +96,15 @@ class TestRunningPipeline(TestCase):
         return_value = {
             "request": Mock(),
         }
-        trigger_with_exception = Mock(side_effect=ValueError("Value error exception"))
-        trigger_with_exception.__name__ = "trigger_with_exception"
-        trigger_without_exception = Mock(return_value=return_value)
+        function_with_exception = Mock(side_effect=ValueError("Value error exception"))
+        function_with_exception.__name__ = "function_with_exception"
+        function_without_exception = Mock(return_value=return_value)
         get_functions_mock.return_value = [
-            trigger_with_exception,
-            trigger_without_exception,
+            function_with_exception,
+            function_without_exception,
         ]
         log_message = (
-            "Exception raised while running `trigger_with_exception`: Value error exception\n"
+            "Exception raised while running 'function_with_exception': Value error exception\n"
             "Continuing execution."
         )
 
@@ -114,11 +112,10 @@ class TestRunningPipeline(TestCase):
             result = run_pipeline(self.pipeline, **self.kwargs)
 
         self.assertEqual(
-            captured.records[0].getMessage(),
-            log_message,
+            captured.records[0].getMessage(), log_message,
         )
         self.assertEqual(result, return_value)
-        trigger_without_exception.assert_called_once_with(**self.kwargs)
+        function_without_exception.assert_called_once_with(**self.kwargs)
 
     @patch("edx_django_utils.hooks.pipeline.get_functions_for_pipeline")
     def test_getting_pipeline_result(self, get_functions_mock):
@@ -135,17 +132,17 @@ class TestRunningPipeline(TestCase):
             "user": Mock(),
         }
         return_overall_value = {**return_value_1st, **return_value_2nd}
-        first_trigger = Mock(return_value=return_value_1st)
-        second_trigger = Mock(return_value=return_value_2nd)
+        first_function = Mock(return_value=return_value_1st)
+        second_function = Mock(return_value=return_value_2nd)
         get_functions_mock.return_value = [
-            first_trigger,
-            second_trigger,
+            first_function,
+            second_function,
         ]
 
         result = run_pipeline(self.pipeline, **self.kwargs)
 
-        first_trigger.assert_called_once_with(**self.kwargs)
-        second_trigger.assert_called_once_with(**return_value_1st)
+        first_function.assert_called_once_with(**self.kwargs)
+        second_function.assert_called_once_with(**return_value_1st)
         self.assertDictEqual(result, return_overall_value)
 
     @patch("edx_django_utils.hooks.pipeline.get_functions_for_pipeline")
@@ -158,15 +155,21 @@ class TestRunningPipeline(TestCase):
             Returns the object used to stop execution.
         """
         return_value_1st = Mock()
-        first_trigger = Mock(return_value=return_value_1st)
-        second_trigger = Mock()
+        first_function = Mock(return_value=return_value_1st)
+        first_function.__name__ = "first_function"
+        second_function = Mock()
         get_functions_mock.return_value = [
-            first_trigger,
-            second_trigger,
+            first_function,
+            second_function,
         ]
+        log_message = "Pipeline stopped by 'first_function' for returning an object."
 
-        result = run_pipeline(self.pipeline, **self.kwargs)
+        with self.assertLogs() as captured:
+            result = run_pipeline(self.pipeline, **self.kwargs)
 
-        first_trigger.assert_called_once_with(**self.kwargs)
-        second_trigger.assert_not_called()
+        self.assertEqual(
+            captured.records[0].getMessage(), log_message,
+        )
+        first_function.assert_called_once_with(**self.kwargs)
+        second_function.assert_not_called()
         self.assertEqual(result, return_value_1st)
