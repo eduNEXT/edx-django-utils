@@ -38,3 +38,4 @@ Consequences
 1. Actions listening on a trigger must return None. Either way their result will be ignored.
 2. Given that we are using just one pipeline with actions and filters listening on triggers, the behavior when executing them will be the same.
 3. Given that actions and filters will expect the same input arguments, i.e accumulated output plus initial arguments, their signature will stay the same. And for this reason, these functions are interchangeable.
+4. For the above reasons, actions and filters must have \*args and \*\*kwargs in their signature.
