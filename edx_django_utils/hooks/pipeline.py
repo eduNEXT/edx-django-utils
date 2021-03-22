@@ -59,7 +59,7 @@ def run_pipeline(pipeline, *args, raise_exception=False, **kwargs):
         except HookException as exc:
             if raise_exception:
                 log.exception(
-                    "Failed to call action filter. Error: %s", exc,
+                    "Exception raised while running `%s`:\n %s", function.__name__, exc,
                 )
                 raise exc
         except Exception as exc:  # pylint: disable=broad-except
@@ -68,7 +68,8 @@ def run_pipeline(pipeline, *args, raise_exception=False, **kwargs):
             # monitoring hooked up to it to make sure that these errors don't go
             # unseen.
             log.exception(
-                "Failed to call action filter. Error: %s", exc,
+                "Exception raised while running `%s`: %s\n%s", function.__name__, exc,
+                "Continuing execution."
             )
             continue
 

@@ -47,11 +47,21 @@ class TestRunningPipeline(TestCase):
         Expected behavior:
             The pipeline re-raises the exception caught.
         """
-        trigger = Mock(side_effect=HookException)
-        get_functions_mock.return_value = [trigger]
+        exception_message = "There was an error executing filter X."
+        function = Mock(side_effect=HookException(message=exception_message))
+        function.__name__ = "function_name"
+        get_functions_mock.return_value = [function]
+        log_message = "Exception raised while running `{func_name}`:\n HookException: {exc_msg}".format(
+            func_name="function_name",
+            exc_msg=exception_message,
+        )
 
-        with self.assertRaises(HookException):
+        with self.assertRaises(HookException), self.assertLogs() as captured:
             run_pipeline(self.pipeline, raise_exception=True, **self.kwargs)
+        self.assertEqual(
+            captured.records[0].getMessage(),
+            log_message,
+        )
 
     @patch("edx_django_utils.hooks.pipeline.get_functions_for_pipeline")
     def test_not_raise_hook_exception(self, get_functions_mock):
@@ -60,7 +70,7 @@ class TestRunningPipeline(TestCase):
         raise_exception is set to False.
 
         Expected behavior:
-            The pipeline does not re-raises the exception caught.
+            The pipeline does not re-raise the exception caught.
         """
         return_value = {
             "request": Mock(),
@@ -89,18 +99,23 @@ class TestRunningPipeline(TestCase):
             "request": Mock(),
         }
         trigger_with_exception = Mock(side_effect=ValueError("Value error exception"))
+        trigger_with_exception.__name__ = "trigger_with_exception"
         trigger_without_exception = Mock(return_value=return_value)
         get_functions_mock.return_value = [
             trigger_with_exception,
             trigger_without_exception,
         ]
+        log_message = (
+            "Exception raised while running `trigger_with_exception`: Value error exception\n"
+            "Continuing execution."
+        )
 
         with self.assertLogs() as captured:
             result = run_pipeline(self.pipeline, **self.kwargs)
 
         self.assertEqual(
             captured.records[0].getMessage(),
-            "Failed to call action filter. Error: Value error exception",
+            log_message,
         )
         self.assertEqual(result, return_value)
         trigger_without_exception.assert_called_once_with(**self.kwargs)
