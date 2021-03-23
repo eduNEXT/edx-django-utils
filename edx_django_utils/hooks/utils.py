@@ -15,8 +15,8 @@ def get_functions_for_pipeline(pipeline):
     to each path.
 
     Example usage:
-        triggers = get_functions_for_pipeline(['1st_path_to_function', ...])
-        >>> triggers
+        functions = get_functions_for_pipeline(['1st_path_to_function', ...])
+        >>> functions
         [
             <function 1st_function at 0x00000000000>,
             <function 2nd_function at 0x00000000001>,
